@@ -1,0 +1,91 @@
+# depslib dependency file v1.0
+1772874505 source:c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\car.cpp
+	"car.h"
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+
+1772874584 c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\car.h
+	<GL/glut.h>
+	<GL/glu.h>
+
+1426329928 c:\program files\codeblocks\mingw\include\gl\glut.h
+	"freeglut_std.h"
+
+1426329928 c:\program files\codeblocks\mingw\include\gl\freeglut_std.h
+	<windows.h>
+	<EGL/egl.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1772874550 source:c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\crashedcar.cpp
+	"crashedCar.h"
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+
+1772874618 c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\crashedcar.h
+	<GL/glut.h>
+	<GL/glu.h>
+
+1772874529 source:c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\environment.cpp
+	"environment.h"
+	<GL/glut.h>
+	<cmath>
+
+1772874598 c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\environment.h
+	<GL/glut.h>
+
+1772874485 source:c:\users\user\documents\education work\usj work\year 2 semester 2\zoom_zoom_zombay\main.cpp
+	<iostream>
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+	"car.h"
+	"environment.h"
+	"crashedCar.h"
+
+1772874505 source:c:\users\user\downloads\zoom_zoom_zombay\car.cpp
+	"car.h"
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+
+1772874584 c:\users\user\downloads\zoom_zoom_zombay\car.h
+	<GL/glut.h>
+	<GL/glu.h>
+
+1772874550 source:c:\users\user\downloads\zoom_zoom_zombay\crashedcar.cpp
+	"crashedCar.h"
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+
+1772874618 c:\users\user\downloads\zoom_zoom_zombay\crashedcar.h
+	<GL/glut.h>
+	<GL/glu.h>
+
+1772874529 source:c:\users\user\downloads\zoom_zoom_zombay\environment.cpp
+	"environment.h"
+	<GL/glut.h>
+	<cmath>
+
+1772874598 c:\users\user\downloads\zoom_zoom_zombay\environment.h
+	<GL/glut.h>
+
+1773665332 source:c:\users\user\downloads\zoom_zoom_zombay\main.cpp
+	<iostream>
+	<GL/glut.h>
+	<GL/glu.h>
+	<cmath>
+	<windows.h>
+	<mmsystem.h>
+	"car.h"
+	"environment.h"
+	"crashedCar.h"
+

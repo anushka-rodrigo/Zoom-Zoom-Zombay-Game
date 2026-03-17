@@ -144,9 +144,9 @@ void carCabin(){
 
     glPushMatrix();
 
-    if (!isDay){
-        glDisable(GL_LIGHTING);
-    }
+
+    glDisable(GL_LIGHTING);
+
 
     glColor3f(0.9f, 0.8f, 0.4f);
 
@@ -199,9 +199,8 @@ void carCabin(){
     glEnd();
     glPopMatrix();
 
-    if (!isDay) {
-        glEnable(GL_LIGHTING); // CRITICAL: Turn lighting back on for the rest of the car
-    }
+    glEnable(GL_LIGHTING); // CRITICAL: Turn lighting back on for the rest of the car
+
 }
 
 //car spoiler

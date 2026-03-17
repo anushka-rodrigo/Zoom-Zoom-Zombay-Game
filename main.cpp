@@ -24,9 +24,47 @@ float carSpeed = 0.0f; //forward, backward speed
 float wheelRotation = 0.0f; //for wheels to rotate
 float wheelSteerAngle = 0.0f; //variable to turn the wheels
 
-bool isDay = true;
 bool isCrashed = false;
 float zoom = 60.0f; //this is the default FOV (45 to 60)
+
+enum State {MENU, PLAYING, GAMEOVER};
+State current_state = MENU;
+
+//for sounds
+void playLoopSound(const char* file) {
+    PlaySound(TEXT(file), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+}
+
+void playOneShot(const char* file) {
+    PlaySound(TEXT(file), NULL, SND_FILENAME | SND_ASYNC);
+}
+
+void stopSound() {
+    PlaySound(NULL, 0, 0);
+}
+
+// Function to render 2D text
+void drawText(const char* text, float x, float y) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 800, 0, 600); // Set to window size
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glDisable(GL_LIGHTING); // Ensure text isn't affected by lights
+    glRasterPos2f(x, y);
+    for (const char* c = text; *c != '\0'; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+    glEnable(GL_LIGHTING);
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
 
 //Person collision state data
 const int PERSON_COUNT = 5;
@@ -155,19 +193,27 @@ void specialKeys(int key, int x, int y) {
 
 //declared function so it can be used in keyboard function
 void reshape(int w, int h);
-void resetPeople();
+void restartGame();
 
+void startGame(int value) {
+    current_state = PLAYING;
+    playLoopSound("sounds/CarEngineSound.wav");
+    glutPostRedisplay();
+}
 
 void keyboard(unsigned char key, int x, int y) {
-    if (key == 'r' || key == 'R') {
-        resetPeople();
-        glutPostRedisplay();
+    // Start game on Spacebar
+    if (key == ' ' && current_state == MENU) {
+        stopSound();
+        playOneShot("sounds/StartGameSound.wav");
+        glutTimerFunc(2000, startGame, 0); //delays the starting of game by 2 seconds
         return;
     }
 
-    if (key == 'd' || key == 'D') {
-        isDay = !isDay;
+    if (key == 'r' || key == 'R') {
+        restartGame();
         glutPostRedisplay();
+        return;
     }
 
     //for testing purposes - change to crashed state
@@ -183,27 +229,16 @@ void keyboard(unsigned char key, int x, int y) {
         return;
     }
 
-    switch(key){
-        case 'w':
-            if (zoom > 5.0f){
+    if (key == 'w' || key == 'W') {
+        if (zoom > 5.0f){
                 zoom -= 2.0f;
             }
-            break;
-        case 'W':
-            if (zoom > 5.0f){
-                zoom -= 2.0f;
-            }
-            break;
-        case 's':
-            if (zoom < 120.0f){
+    }
+
+    if (key == 's' || key == 'S') {
+        if (zoom < 120.0f){
                 zoom += 2.0f;
             }
-            break;
-        case 'S':
-            if (zoom < 120.0f){
-                zoom += 2.0f;
-            }
-            break;
     }
 
     // We must manually call the reshape logic to apply the new 'zoom' to gluPerspective
@@ -246,7 +281,11 @@ void updateCar() {
     for (int i = 0; i < TREE_COUNT; i++) {
         if (hitObstacle(carX, carZ, treeObstacles[i])) {
             isCrashed = true;
+            current_state = GAMEOVER;
             carSpeed = 0.0f;
+            stopSound(); // stop engine
+            playOneShot("sounds/DeathSound.wav");
+            glutPostRedisplay();
             return;
         }
     }
@@ -254,7 +293,11 @@ void updateCar() {
     for (int i = 0; i < HOUSE_COUNT; i++) {
         if (hitObstacle(carX, carZ, houseObstacles[i])) {
             isCrashed = true;
+            current_state = GAMEOVER;
             carSpeed = 0.0f;
+            stopSound(); // stop engine
+            playOneShot("sounds/DeathSound.wav");
+            glutPostRedisplay();
             return;
         }
     }
@@ -262,7 +305,11 @@ void updateCar() {
     for (int i = 0; i < BUILDING_COUNT; i++) {
         if (hitObstacle(carX, carZ, buildingObstacles[i])) {
             isCrashed = true;
+            current_state = GAMEOVER;
             carSpeed = 0.0f;
+            stopSound(); // stop engine
+            playOneShot("sounds/DeathSound.wav");
+            glutPostRedisplay();
             return;
         }
     }
@@ -283,14 +330,12 @@ void updateCar() {
 }
 
 //bring back the people to life
-void resetPeople()
-{
-    for (int i = 0; i < PERSON_COUNT; i++) {
-        personVisible[i] = true;
-    }for (int j = 0; j < POLICE_COUNT; j++) {
-        policeVisible[j] = true;
-    }
+void restartGame(){
     isCrashed = false;
+    current_state = PLAYING;
+    stopSound();
+    playLoopSound("sounds/CarEngineSound.wav");
+
     // Reset car to original starting position
     carX = 20.0f;       // original X
     carZ = -15.0f;      // original Z
@@ -330,45 +375,24 @@ void setupLighting() {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    if (isDay) {
-        //Light options for Day
-        GLfloat lightPos[] = {0.0f, 80.0f, 0.0f, 1.0f};
-        GLfloat ambient[]  = {0.75f, 0.75f, 0.75f, 1.0f};
-        GLfloat diffuse[]  = {1.0f,  1.0f,  1.0f,  1.0f};
-        GLfloat specular[] = {0.3f,  0.3f,  0.3f,  1.0f};
+    //Light options for Night
+    GLfloat lightPos[] = {0.0f, 40.0f, 20.0f, 1.0f};
+    GLfloat ambient[]  = {0.15f, 0.15f, 0.25f, 1.0f};
+    GLfloat diffuse[]  = {0.4f,  0.4f,  0.6f,  1.0f};
+    GLfloat specular[] = {0.1f,  0.1f,  0.2f,  1.0f};
 
-        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
 
-        glClearColor(0.65f, 0.85f, 0.95f, 1.0f); // sky blue
-    }
-    else {
-        //Light options for Night
-        GLfloat lightPos[] = {0.0f, 40.0f, 20.0f, 1.0f};
-        GLfloat ambient[]  = {0.15f, 0.15f, 0.25f, 1.0f};
-        GLfloat diffuse[]  = {0.4f,  0.4f,  0.6f,  1.0f};
-        GLfloat specular[] = {0.1f,  0.1f,  0.2f,  1.0f};
-
-        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-
-        glClearColor(0.05f, 0.05f, 0.15f, 1.0f); // night sky
-    }
+    glClearColor(0.05f, 0.05f, 0.15f, 1.0f); // night sky
 
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 }
 
 void setupHeadlights() {
-    if (isDay) {
-        // Turn headlights OFF during day
-        glDisable(GL_LIGHT1);
-        return;
-    }
 
     glEnable(GL_LIGHT1);
 
@@ -411,32 +435,110 @@ void setupHeadlights() {
 
 // Redrawing window (The main drawing loop)
 void display() {
-
-    setupLighting();   // sun / moon + sky
-    setupHeadlights(); //car headlights
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    updateCar(); //added to car turning functionality
-    //adding car functionality here ensures proper circular angled turning
-    //if you implement this function any where else it won't implement the circular turning motion
-    //instead it will just rotate in same place
+    if (current_state == MENU){
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Dark background for menu
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Camera setup
-    gluLookAt(
-        -5.0f, 30.0f, 15.0f,   // eye
-        -5.0f, 0.0f, -25.0f,    // center
-        0.0f, 1.0f, 0.0f    // up
-    );
-
-    // Call drawing functions from other modules
-    drawEnvironment();
-    if (!isCrashed){
-        drawCar();
+        glColor3f(1.0f, 0.0f, 0.0f);
+        drawText("ZOOM ZOOM ZOMBAY!!!", 300, 450);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        drawText("INSTRUCTIONS:", 350, 380);
+        drawText(" Use Arrow Keys to Drive", 300, 340);
+        drawText("Crush the zombies with your Car!", 300, 310);
+        drawText("Do not crash, the zombies will overrun you", 300, 280);
+        drawText("There is no escape, crush as many as you can", 300, 250);
+        glColor3f(1.0f, 1.0f, 0.0f);
+        drawText("PRESS SPACE TO START", 310, 120);
     }
-    else{
+    else if(current_state == PLAYING){
+        setupLighting();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+
+        updateCar(); //added to car turning functionality
+        //adding car functionality here ensures proper circular angled turning
+        //if you implement this function any where else it won't implement the circular turning motion
+        //instead it will just rotate in same place
+
+        // Camera setup
+        gluLookAt(
+            -5.0f, 30.0f, 15.0f,   // eye
+            -5.0f, 0.0f, -25.0f,    // center
+            0.0f, 1.0f, 0.0f    // up
+        );
+
+
+        setupHeadlights(); //car headlights
+
+        // Call drawing functions from other modules
+        drawEnvironment();
+        if (!isCrashed){
+            drawCar();
+        }
+        else{
+            //drawCrashedCar();
+            current_state = GAMEOVER;
+            glutPostRedisplay();
+        }
+
+    }
+    else if (current_state == GAMEOVER){
+        // 1. Draw the 3D World in the background
+        setupLighting();
+        gluLookAt(-5.0f, 30.0f, 15.0f, -5.0f, 0.0f, -25.0f, 0.0f, 1.0f, 0.0f);
+
+        drawEnvironment();
         drawCrashedCar();
+
+        // 2. Overlay Setup
+        glDisable(GL_DEPTH_TEST); // IMPORTANT: Ignore depth so overlay/text stay on top
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_LIGHTING);
+
+        // Draw the semi-transparent black tint
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0, 800, 0, 600);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glColor4f(0.0f, 0.0f, 0.0f, 0.7f); // 70% dark overlay
+        glBegin(GL_QUADS);
+            glVertex2f(0, 0);
+            glVertex2f(800, 0);
+            glVertex2f(800, 600);
+            glVertex2f(0, 600);
+        glEnd();
+
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+
+        // 3. Draw the Game Over Text
+        // Reset color to solid red/white before drawing
+        glColor3f(1.0f, 0.0f, 0.0f);
+        drawText("GAME OVER!", 350, 400);
+
+        glColor3f(1.0f, 1.0f, 1.0f);
+        drawText("The car has crashed.", 330, 360);
+
+        glColor3f(1.0f, 0.0f, 0.0f);
+        drawText("THE ZOMBIES ARE EATING YOU!.", 330, 330);
+        drawText("NOOO!!!.", 330, 300);
+        glColor3f(1.0f, 1.0f, 0.0f);
+        drawText("PRESS 'R' TO RESTART", 330, 250);
+
+        // 4. Cleanup: Restore states for the next frame
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
     }
 
     glutSwapBuffers();
@@ -459,14 +561,6 @@ int main(int argc, char** argv) {
     std::cout << "S : Zoom out\n\n";
     std::cout << "**********************************************\n\n";
 
-    //sounds
-
-    //PlaySound(TEXT("sounds/test.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-    //PlaySound(TEXT("sounds/MenuStartUpSound.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-    //PlaySound(TEXT("sounds/StartGameSound.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-    //PlaySound(TEXT("sounds/CarEngineSound.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-    //PlaySound(TEXT("sounds/DeathSound.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-
     //initializing GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -474,6 +568,7 @@ int main(int argc, char** argv) {
     glutCreateWindow("3D Race Car Simulation");
 
     init();
+    playLoopSound("sounds/MenuStartUpSound.wav");
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);

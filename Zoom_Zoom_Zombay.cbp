@@ -39,6 +39,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Linker>
+			<Add library="winmm" />
+		</Linker>
 		<Unit filename="car.cpp" />
 		<Unit filename="car.h" />
 		<Unit filename="crashedCar.cpp" />

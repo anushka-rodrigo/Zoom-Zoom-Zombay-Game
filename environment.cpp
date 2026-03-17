@@ -167,18 +167,16 @@ static void drawStreetLamp(float x, float z) {
     glPopMatrix();
 
     // Light Bulb (Glowing)
-    if (!isDay){
-        glDisable(GL_LIGHTING);
-    }
+    glDisable(GL_LIGHTING);
+
     glColor3f(1.0f, 1.0f, 0.7f);
     glPushMatrix();
     glTranslatef(-2.0f, 7.5f, 0.0f);
     glutSolidSphere(0.3f, 8, 8);
     glPopMatrix();
 
-    if (!isDay){
-        glEnable(GL_LIGHTING);
-    }
+    glEnable(GL_LIGHTING);
+
 
     glPopMatrix();
 }
@@ -562,7 +560,6 @@ void drawEnvironment() {
     drawStreetLamp(-23.0f, -45.0f);
     drawStreetLamp(-23.0f, -80.0f);
 
-    if (isDay){
         // make people only appear during day time as he is off-duty at night
 
         /* the actual X and Z locations of the people
@@ -584,7 +581,7 @@ void drawEnvironment() {
                 drawPoliceman(policeX[j], policeZ[j]);
             }
         }
-    }
+
 
     // Houses
     for (float x = -30; x < 30; x += 20) {

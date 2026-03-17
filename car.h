@@ -12,7 +12,6 @@ extern float carAngle;
 extern float wheelRotation;
 extern float wheelSteerAngle;
 extern float carSpeed;
-extern bool isDay;
 
 // Function declarations for car geometry
 void drawWheel(float radius, float width);

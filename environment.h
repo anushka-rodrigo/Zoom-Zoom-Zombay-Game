@@ -6,7 +6,6 @@
 #include <GL/glut.h>
 
 // External declaration for global variables defined in main.cpp
-extern bool isDay;
 extern const int PERSON_COUNT;
 extern float personX[];
 extern float personZ[];
